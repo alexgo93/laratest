@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Game;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
+use Illuminate\Support\Arr;
 use Tests\TestCase;
 
 /**
@@ -14,7 +15,7 @@ class GameTest extends TestCase
 {
     use DatabaseMigrations;
 
-    const URL = '/api/games/';
+    const GAME_API_URL = '/api/games/';
 
     /**
      * Test model creating
@@ -23,15 +24,15 @@ class GameTest extends TestCase
      */
     public function testCreate($dataArray)
     {
-        $response = $this->json('POST', self::URL, [
-            'title' => $dataArray[0],
-            'description' => $dataArray[1],
-            'complexity' => $dataArray[2],
-            'isActive' => $dataArray[3]
+        $response = $this->json('POST', self::GAME_API_URL, [
+            'title' => $dataArray['title'],
+            'description' => $dataArray['description'],
+            'complexity' => $dataArray['complexity'],
+            'isActive' => $dataArray['isActive']
         ])->assertStatus(201);
         $id = $response->json()['id'];
 
-        $checkCreate = $this->json('GET', self::URL . $id)->assertOk()->json();
+        $checkCreate = $this->json('GET', self::GAME_API_URL . $id)->assertOk()->json();
         $this->assertEquals($id, $checkCreate['id']);
     }
 
@@ -41,43 +42,43 @@ class GameTest extends TestCase
     public function testView()
     {
         $game = factory(Game::class)->create();
-        $response = $this->json('GET', self::URL . $game->id)->assertOk();
+        $response = $this->json('GET', self::GAME_API_URL . $game->id)->assertOk();
         $response = $response->json();
 
-        $this->assertEquals($game->id, $response['id']);
+        $this->assertEquals($game->id, Arr::get($response, 'id'));
     }
 
     /**
      * Test model updating
      *
-     * @dataProvider updProvider
+     * @dataProvider updatingProvider
      */
-    public function testUpd(array $dataArray): void
+    public function testUpd($dataArray)
     {
         $game = factory(Game::class)->create();
-        $response = $this->json('PUT', self::URL . $game->id, [
+        $response = $this->json('PUT', self::GAME_API_URL . $game->id, [
             'gameId' => $game->id,
-            'title' => $dataArray[0],
-            'description' => $dataArray[1],
-            'complexity' => $dataArray[2],
-            'isActive' => $dataArray[3]
+            'title' => $dataArray['title'],
+            'description' => $dataArray['description'],
+            'complexity' => $dataArray['complexity'],
+            'isActive' => $dataArray['isActive']
         ])
             ->assertStatus(200);
 
         $response = $response->json();
-        $this->assertEquals($response['title'], $dataArray[0]);
+        $this->assertEquals(Arr::get($response, 'title'), $dataArray['title']);
     }
 
     /**
      * Test model deleting
      */
-    public function testDelete(): void
+    public function testDelete()
     {
         $game = factory(Game::class)->create();
-        $response = $this->json('DELETE', self::URL . $game->id, ['gameId' => $game->id]);
+        $response = $this->json('DELETE', self::GAME_API_URL . $game->id, ['gameId' => $game->id]);
         $response->assertStatus(204);
 
-        $this->json('GET', self::URL . $game->id)->assertStatus(404);
+        $this->json('GET', self::GAME_API_URL . $game->id)->assertStatus(404);
     }
 
     /**
@@ -85,12 +86,12 @@ class GameTest extends TestCase
      *
      * @return void
      */
-    public function testAll(): void
+    public function testAll()
     {
         for ($i = 0; $i < 5; $i++) {
             factory(Game::class)->create();
         }
-        $response = $this->get(self::URL);
+        $response = $this->get(self::GAME_API_URL);
 
         $response->assertOk();
         $response = $response->json();
@@ -106,7 +107,12 @@ class GameTest extends TestCase
     {
         return [
             [
-                ['test10', 'testdescr2', 2, 0]
+                [
+                    'title' => 'test10',
+                    'description' => 'testdescr2',
+                    'complexity' => 2,
+                    'isActive' => 0
+                ]
             ],
         ];
     }
@@ -116,11 +122,16 @@ class GameTest extends TestCase
      *
      * @return array
      */
-    public function updProvider(): array
+    public function updatingProvider(): array
     {
         return [
             [
-                ['newTitle', 'newDescr', 3, 1]
+                [
+                    'title' => 'new',
+                    'description' => 'descr',
+                    'complexity' => 3,
+                    'isActive' => 1
+                ]
             ],
         ];
     }
