@@ -63,6 +63,30 @@ return [
             ]) : [],
         ],
 
+        'mysql_test' => [
+            'driver'      => 'mysql',
+            'host'        => env('DB_HOST', '127.0.0.1'),
+            'port'        => env('DB_PORT', '3306'),
+            'database'    => env('DB_DATABASE_TEST', 'testdb'),
+            'username'    => env('DB_USERNAME_TEST', 'root'),
+            'password'    => env('DB_PASSWORD_TEST', 'test'),
+            'unix_socket' => env('DB_SOCKET', ''),
+            'charset'     => 'utf8mb4',
+            'collation'   => 'utf8mb4_unicode_ci',
+            'prefix'      => '',
+            'strict'      => false,
+            'modes'       => [
+                'ONLY_FULL_GROUP_BY',
+                'STRICT_TRANS_TABLES',
+                'NO_ZERO_IN_DATE',
+                'NO_ZERO_DATE',
+                'ERROR_FOR_DIVISION_BY_ZERO',
+                'NO_AUTO_CREATE_USER',
+                'NO_ENGINE_SUBSTITUTION',
+            ],
+            'engine' => null,
+        ],
+
         'pgsql' => [
             'driver' => 'pgsql',
             'url' => env('DATABASE_URL'),

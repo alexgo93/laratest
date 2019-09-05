@@ -54,6 +54,14 @@ services:
     networks:
       - app-network
 
+  testdb:
+    image: mysql:5.7
+    environment:
+      MYSQL_DATABASE: testdb
+      MYSQL_ROOT_PASSWORD: test
+    networks:
+      - app-network
+
 #Docker Networks
 networks:
   app-network:

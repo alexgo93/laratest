@@ -2,7 +2,8 @@
 
 namespace Tests\Feature;
 
-use Illuminate\Foundation\Testing\DatabaseTransactions;
+use App\Game;
+use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Tests\TestCase;
 
 /**
@@ -11,18 +12,72 @@ use Tests\TestCase;
  */
 class GameTest extends TestCase
 {
-    use DatabaseTransactions;
+    use DatabaseMigrations;
+
+    const URL = '/api/games/';
 
     /**
-     * Testing crud of Games model
+     * Test model creating
+     *
+     * @dataProvider creatingProvider
      */
-    public function testGamesModel(): void
+    public function testCreate($dataArray)
     {
-        $id = $this->createTest();
-        $this->allTest();
-        $this->viewTest($id);
-        $this->updTest($id);
-        $this->deleteTest($id);
+        $response = $this->json('POST', self::URL, [
+            'title' => $dataArray[0],
+            'description' => $dataArray[1],
+            'complexity' => $dataArray[2],
+            'isActive' => $dataArray[3]
+        ])->assertStatus(201);
+        $id = $response->json()['id'];
+
+        $checkCreate = $this->json('GET', self::URL . $id)->assertOk()->json();
+        $this->assertEquals($id, $checkCreate['id']);
+    }
+
+    /**
+     * Test model view
+     */
+    public function testView()
+    {
+        $game = factory(Game::class)->create();
+        $response = $this->json('GET', self::URL . $game->id)->assertOk();
+        $response = $response->json();
+
+        $this->assertEquals($game->id, $response['id']);
+    }
+
+    /**
+     * Test model updating
+     *
+     * @dataProvider updProvider
+     */
+    public function testUpd(array $dataArray): void
+    {
+        $game = factory(Game::class)->create();
+        $response = $this->json('PUT', self::URL . $game->id, [
+            'gameId' => $game->id,
+            'title' => $dataArray[0],
+            'description' => $dataArray[1],
+            'complexity' => $dataArray[2],
+            'isActive' => $dataArray[3]
+        ])
+            ->assertStatus(200);
+
+        $response = $response->json();
+        $this->assertEquals($response['title'], $dataArray[0]);
+    }
+
+    /**
+     * Test model deleting
+     */
+    public function testDelete(): void
+    {
+        $game = factory(Game::class)->create();
+        $response = $this->json('DELETE', self::URL . $game->id, ['gameId' => $game->id]);
+        $response->assertStatus(204);
+
+        $this->json('GET', self::URL . $game->id)->assertStatus(404);
     }
 
     /**
@@ -30,67 +85,43 @@ class GameTest extends TestCase
      *
      * @return void
      */
-    private function allTest(): void
+    public function testAll(): void
     {
-        $response = $this->get('/api/games');
+        for ($i = 0; $i < 5; $i++) {
+            factory(Game::class)->create();
+        }
+        $response = $this->get(self::URL);
 
         $response->assertOk();
-    }
-
-    /**
-     * Test model creating
-     *
-     * @return int
-     */
-    private function createTest(): int
-    {
-        $response = $this->json('POST', '/api/games', ['title' => 'test10', 'description' => 'testdescr2', 'complexity' => 2, 'isActive' => 0])->assertStatus(201);
         $response = $response->json();
-
-        return $response['id'];
+        $this->assertCount(5, $response);
     }
 
     /**
-     * Test model view
+     * Dataprovider data for creating
      *
-     * @param int $id
+     * @return array
      */
-    private function viewTest(int $id): void
+    public function creatingProvider(): array
     {
-        $response = $this->json('GET', "/api/games/{$id}")->assertOk();
-        $response = $response->json();
-
-        $this->assertTrue($response['id'] === $id);
+        return [
+            [
+                ['test10', 'testdescr2', 2, 0]
+            ],
+        ];
     }
 
     /**
-     * Test model updating
+     * Dataprovider data for updating
      *
-     * @param int $id
+     * @return array
      */
-    private function updTest(int $id): void
+    public function updProvider(): array
     {
-        $response = $this->json('PUT', "/api/games/{$id}", [
-            'gameId' => $id,
-            'title' => 'newTitle',
-            'description' => 'newDescr',
-            'complexity' => 2,
-            'isActive' => 0
-        ])
-            ->assertStatus(200);
-
-        $response = $response->json();
-        $this->assertTrue($response['title'] === 'newTitle');
-    }
-
-    /**
-     * Test model deleting
-     *
-     * @param int $id
-     */
-    private function deleteTest(int $id): void
-    {
-        $response = $this->json('DELETE', "/api/games/{$id}", ['gameId' => $id]);
-        $response->assertStatus(204);
+        return [
+            [
+                ['newTitle', 'newDescr', 3, 1]
+            ],
+        ];
     }
 }
