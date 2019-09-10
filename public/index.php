@@ -1,4 +1,6 @@
 <?php
+$tmp = 1;
+$tmp2 = 12;
 /**
  * Laravel - A PHP Framework For Web Artisans
  *

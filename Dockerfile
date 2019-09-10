@@ -19,7 +19,11 @@ RUN apt-get update && apt-get install -y \
     vim \
     unzip \
     git \
-    curl
+    curl \
+    && pecl install xdebug-2.7.1 \
+    && docker-php-ext-enable xdebug
+
+ADD ./docker/php/php.ini /usr/local/etc/php/php.ini
 
 # Clear cache
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*

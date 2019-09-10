@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Customer;
+use App\Post;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvider;
 
@@ -23,8 +25,6 @@ class RouteServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        //
-
         parent::boot();
     }
 
@@ -38,8 +38,6 @@ class RouteServiceProvider extends ServiceProvider
         $this->mapApiRoutes();
 
         $this->mapWebRoutes();
-
-        //
     }
 
     /**
@@ -51,14 +49,11 @@ class RouteServiceProvider extends ServiceProvider
      */
     protected function mapWebRoutes()
     {
-        Route::group(['middleware' => ['web']], function () {
-            Route::get('/', 'App\Http\Controllers\PostController@index');
-            Route::post('/post', 'App\Http\Controllers\PostController@create');
-            Route::get('/post/{id}', 'App\Http\Controllers\PostController@read')->name('edit.post');
-            Route::put('/post/{id}', 'App\Http\Controllers\PostController@update')->name('update.post');
-            Route::delete('/post/{id}', 'App\Http\Controllers\PostController@delete')->name('destroy.post');
-        });
+        Route::middleware('web')
+            ->namespace($this->namespace)
+            ->group(base_path('routes/web.php'));
     }
+
 
     /**
      * Define the "api" routes for the application.
@@ -73,7 +68,5 @@ class RouteServiceProvider extends ServiceProvider
             ->middleware('api')
             ->namespace($this->namespace)
             ->group(base_path('routes/api.php'));
-
-
     }
 }
